@@ -1,0 +1,13 @@
+[package]
+name = "kiwirust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+lazy_static = "1.4.0"
+serde = { version = "1.0.162", features = ["derive"]}
+serde_json = "1.0.96"
+serenity = { default-features = false, features = ["client", "gateway", "rustls_backend", "model", "cache"] }
+tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
