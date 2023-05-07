@@ -7,7 +7,10 @@ edition = "2021"
 
 [dependencies]
 lazy_static = "1.4.0"
+pterodactyl_api = "0.1.1"
+reqwest = "0.11.17"
 serde = { version = "1.0.162", features = ["derive"]}
 serde_json = "1.0.96"
-serenity = { default-features = false, features = ["client", "gateway", "rustls_backend", "model", "cache"] }
+serenity = { version = "0.11.5", default-features = false, features = ["client", "gateway", "rustls_backend", "model", "cache"] }
+thiserror = "1.0.40"
 tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
