@@ -1,5 +1,6 @@
 mod commands;
 mod config;
+mod error;
 mod events;
 mod handler;
 mod util;
