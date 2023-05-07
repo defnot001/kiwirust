@@ -1,4 +1,4 @@
-use std::{fs::File, io::BufReader};
+use std::fs::File;
 
 use lazy_static::lazy_static;
 use serde::Deserialize;
@@ -26,10 +26,8 @@ lazy_static! {
 
 impl Config {
     fn load() -> Config {
-        let file = File::open("config.json").expect("Failed to open the config.file");
-        let reader = BufReader::new(file);
-
-        serde_json::from_reader(reader).expect("Failed to parse the config file contents.")
+        let file: File = File::open("config.json").expect("Failed to open the config.file");
+        serde_json::from_reader(file).expect("Failed to parse the config file contents.")
     }
 
     pub fn get() -> &'static Self {
