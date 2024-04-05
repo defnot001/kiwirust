@@ -54,12 +54,12 @@ pub struct ServerConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct RoleConfig {
-    admin: serenity::RoleId,
-    member: serenity::RoleId,
-    members: serenity::RoleId,
-    pingpong: serenity::RoleId,
-    trial: serenity::RoleId,
-    kiwi_inc: serenity::RoleId,
+    pub admin: serenity::RoleId,
+    pub member: serenity::RoleId,
+    pub members: serenity::RoleId,
+    pub pingpong: serenity::RoleId,
+    pub trial: serenity::RoleId,
+    pub kiwi_inc: serenity::RoleId,
 }
 
 impl Config {
