@@ -11,7 +11,7 @@ use crate::{
     Context as AppContext,
 };
 
-/// Get random pictures of animals.
+/// Run commands on the servers via rcon.
 #[poise::command(slash_command, guild_only = true)]
 pub async fn run(
     ctx: AppContext<'_>,
