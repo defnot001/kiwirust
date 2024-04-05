@@ -28,17 +28,16 @@ pub async fn help(
 ) -> anyhow::Result<()> {
     ctx.defer().await?;
 
-    let content = read_help_file(&thing)
-        .await
-        .context("Error reading help file")?;
-
+    let content = read_help_file(&thing).await?;
     let embed = default_embed(&ctx.author()).description(content);
 
-    ctx.send(CreateReply::default().embed(embed))
-        .await
-        .context("Failed to reply to the command")?;
-
-    Ok(())
+    match ctx.send(CreateReply::default().embed(embed)).await {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            tracing::error!("Failed to send message: {:?}", e);
+            return Err(e).context("Failed to send message");
+        }
+    }
 }
 
 async fn read_help_file(choice: &HelpChoice) -> anyhow::Result<String> {

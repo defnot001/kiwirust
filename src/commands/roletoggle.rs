@@ -50,7 +50,7 @@ pub async fn roletoggle(
                 display(ctx.author()),
             );
 
-            return Err(e).context("Failed to remove role!");
+            return Err(e).context("Failed to remove role");
         }
     } else {
         let res = member.add_role(&ctx, role_id).await;
@@ -62,13 +62,23 @@ pub async fn roletoggle(
                 display(ctx.author()),
             );
 
-            return Err(e).context("Failed to add role!");
+            return Err(e).context("Failed to add role");
         }
     }
 
-    ctx.say(format!("Successfully toggled role {:?}!", role_choice))
+    match ctx
+        .say(format!("Successfully toggled role {:?}!", role_choice))
         .await
-        .context("Failed to send message")?;
+    {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            tracing::error!(
+                "Failed to send message after toggling role {:?} for {}: {e}",
+                role_choice,
+                display(ctx.author()),
+            );
 
-    Ok(())
+            Err(e).context("Failed to send message")
+        }
+    }
 }
