@@ -63,6 +63,10 @@ pub fn inline_code(input: impl Into<String>) -> String {
     format!("`{}`", input.into())
 }
 
+pub fn block_code(input: impl Into<String>) -> String {
+    format!("```{}```", input.into())
+}
+
 pub fn user_mention(user: &User) -> String {
     format!("<@{}>", user.id)
 }

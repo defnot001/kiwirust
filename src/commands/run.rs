@@ -4,7 +4,10 @@ use poise::serenity_prelude as serenity;
 
 use crate::{
     config::ServerChoice,
-    util::{format::fdisplay, rcon::run_rcon_command},
+    util::{
+        format::{block_code, fdisplay},
+        rcon::run_rcon_command,
+    },
     Context as AppContext,
 };
 
@@ -39,7 +42,7 @@ pub async fn run(
         ));
     }
 
-    ctx.say(format!("```{response}```"))
+    ctx.say(block_code(response))
         .await
         .context("Failed to send response")?;
 
