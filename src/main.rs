@@ -5,15 +5,20 @@ mod config;
 mod events;
 mod util;
 
+use commands::animal;
 use config::Config;
 use events::event_handler;
 
 use poise::serenity_prelude as serenity;
 use sqlx::postgres::PgPoolOptions;
 
+#[derive(Debug, Clone)]
 pub struct Data {
     db_pool: sqlx::PgPool,
+    config: Config,
 }
+
+pub type Context<'a> = poise::Context<'a, Data, anyhow::Error>;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -36,11 +41,12 @@ async fn main() -> anyhow::Result<()> {
         | serenity::GatewayIntents::GUILD_MESSAGE_REACTIONS
         | serenity::GatewayIntents::GUILD_EMOJIS_AND_STICKERS;
 
-    let register_guild_id = serenity::GuildId::from(config.bot.guild_id);
+    let register_guild_id = serenity::GuildId::from(config.bot.guild_id.clone());
+    let bot_token = config.bot.token.clone();
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![],
+            commands: vec![animal::animal()],
             event_handler: |ctx, event, framework, _data| {
                 Box::pin(event_handler(ctx, event, framework))
             },
@@ -54,12 +60,12 @@ async fn main() -> anyhow::Result<()> {
                     register_guild_id,
                 )
                 .await?;
-                Ok(Data { db_pool })
+                Ok(Data { db_pool, config })
             })
         })
         .build();
 
-    let client = serenity::ClientBuilder::new(&config.bot.token, client_intents)
+    let client = serenity::ClientBuilder::new(bot_token, client_intents)
         .framework(framework)
         .await;
 
