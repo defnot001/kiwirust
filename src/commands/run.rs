@@ -32,21 +32,22 @@ pub async fn run(
         return Err(anyhow::anyhow!("Command string cannot be empty."));
     }
 
-    let response = run_rcon_command(&server_choice, &ctx.data().config, command)
+    let mut response = run_rcon_command(&server_choice, &ctx.data().config, command)
         .await?
         .unwrap_or("Command ran successfully but there was no response.".to_string());
 
     if response.len() > 2000 {
-        return Err(anyhow::anyhow!(
-            "Command ran successfully but the response was too long to send."
-        ));
+        response.truncate(1950);
+        response.push_str("...\n\nResponse was too long and was truncated.");
     }
 
-    ctx.say(block_code(response))
-        .await
-        .context("Failed to send response")?;
-
-    Ok(())
+    match ctx.say(block_code(response)).await {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            tracing::error!("Failed to send message: {:?}", e);
+            Err(e).context("Failed to send message")
+        }
+    }
 }
 
 async fn is_interaction_from_admin(ctx: &AppContext<'_>) -> anyhow::Result<bool> {
