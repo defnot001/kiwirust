@@ -51,6 +51,7 @@ async fn main() -> anyhow::Result<()> {
                 help::help(),
                 run::run(),
                 roletoggle::roletoggle(),
+                mcskin::mcskin(),
             ],
             event_handler: |ctx, event, framework, _data| {
                 Box::pin(event_handler(ctx, event, framework))

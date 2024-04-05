@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use anyhow::Context;
+use poise::{serenity_prelude as serenity, CreateReply};
 
 use crate::{util::mojang::MojangAPI, Context as AppContext};
 
@@ -24,7 +25,7 @@ enum SkinPositionChoice {
     Skin,
 }
 
-#[derive(Debug, poise::ChoiceParameter)]
+#[derive(Debug, PartialEq, poise::ChoiceParameter)]
 enum RenderTypeChoice {
     Full,
     Bust,
@@ -84,13 +85,103 @@ pub async fn mcskin(
         return Err(anyhow::anyhow!("Player name cannot be empty."));
     }
 
+    let allowed_render_types = get_allowed_render_types(&position);
+
+    if !allowed_render_types.contains(&render_type) {
+        return Err(anyhow::anyhow!(
+            "Render type {} is not allowed for position {}! This position only allows {}.",
+            render_type,
+            position,
+            allowed_render_types
+                .iter()
+                .map(|x| x.to_string())
+                .collect::<Vec<_>>()
+                .join(", ")
+        ));
+    }
+
     let mojang_profile = MojangAPI::get_profile(&player_name).await?;
 
-    match ctx.say(format!("{:#?}", mojang_profile)).await {
+    let skin_url = format!(
+        "https://starlightskins.lunareclipse.studio/render/{position}/{}/{render_type}",
+        mojang_profile.id,
+    );
+
+    let res = reqwest::get(&skin_url)
+        .await
+        .context("Failed to get skin")?;
+
+    let Some(content_type) = res.headers().get("content-type") else {
+        return Err(anyhow::anyhow!("Header content-type not found"));
+    };
+
+    let content_type = content_type
+        .to_str()
+        .context("Failed to parse content-type")?
+        .to_string();
+
+    if !content_type.starts_with("image/") {
+        return Err(anyhow::anyhow!("Content is not am image"));
+    }
+
+    if !res.status().is_success() {
+        return Err(anyhow::anyhow!(
+            "Skin API returned Status: {}",
+            res.status()
+        ));
+    }
+
+    let content = res.bytes().await.context("Failed to get content")?;
+
+    let file_extension = match content_type.as_str() {
+        "image/png" => "png",
+        "image/jpeg" | "image/jpg" => "jpg",
+        "image/webp" => "webp",
+        _ => {
+            anyhow::bail!("Unsupported content type: {}", content_type);
+        }
+    };
+
+    let reply = CreateReply::default().attachment(serenity::CreateAttachment::bytes(
+        content,
+        format!("{}.{}", &player_name, file_extension),
+    ));
+
+    match ctx.send(reply).await {
         Ok(_) => Ok(()),
         Err(e) => {
             tracing::error!("Failed to send message: {:?}", e);
             return Err(e).context("Failed to send message");
         }
+    }
+}
+
+fn get_allowed_render_types(pos: &SkinPositionChoice) -> Vec<RenderTypeChoice> {
+    match pos {
+        SkinPositionChoice::Default
+        | SkinPositionChoice::Marching
+        | SkinPositionChoice::Walking
+        | SkinPositionChoice::Crouching
+        | SkinPositionChoice::Crossed
+        | SkinPositionChoice::CrissCross
+        | SkinPositionChoice::Ultimate
+        | SkinPositionChoice::Cheering
+        | SkinPositionChoice::Relaxing
+        | SkinPositionChoice::Trudging
+        | SkinPositionChoice::Cowering
+        | SkinPositionChoice::Pointing
+        | SkinPositionChoice::Lunging => vec![
+            RenderTypeChoice::Full,
+            RenderTypeChoice::Bust,
+            RenderTypeChoice::Face,
+        ],
+        SkinPositionChoice::Isometric => vec![
+            RenderTypeChoice::Full,
+            RenderTypeChoice::Bust,
+            RenderTypeChoice::Face,
+            RenderTypeChoice::Head,
+        ],
+        SkinPositionChoice::Head => vec![RenderTypeChoice::Full],
+        SkinPositionChoice::Skin => vec![RenderTypeChoice::Default, RenderTypeChoice::Processed],
     }
 }
