@@ -1,6 +1,7 @@
 use std::{fmt::Display, num::NonZeroU64};
 
 use anyhow::Context;
+use poise::serenity_prelude as serenity;
 use serde::Deserialize;
 use serde_json::ser::Formatter;
 
@@ -18,13 +19,14 @@ pub struct Config {
     pub bot: BotConfig,
     pub database: DatabaseConfig,
     pub minecraft: MinecraftConfig,
+    pub roles: RoleConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct BotConfig {
     pub token: String,
     pub client_id: NonZeroU64,
-    pub guild_id: NonZeroU64,
+    pub guild_id: serenity::GuildId,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -48,6 +50,16 @@ pub struct ServerConfig {
     pub rcon_port: u16,
     pub rcon_password: String,
     pub panel_id: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct RoleConfig {
+    admin: serenity::RoleId,
+    member: serenity::RoleId,
+    members: serenity::RoleId,
+    pingpong: serenity::RoleId,
+    trial: serenity::RoleId,
+    kiwi_inc: serenity::RoleId,
 }
 
 impl Config {
