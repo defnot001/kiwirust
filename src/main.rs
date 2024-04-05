@@ -5,7 +5,7 @@ mod config;
 mod events;
 mod util;
 
-use commands::{animal, help, roletoggle, run};
+use commands::{animal, help, mcskin, roletoggle, run};
 use config::Config;
 use events::event_handler;
 
