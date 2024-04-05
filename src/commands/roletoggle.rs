@@ -66,9 +66,9 @@ pub async fn roletoggle(
         }
     }
 
-    ctx.say(format!("Successfully toggled role {:?}", role_choice))
+    ctx.say(format!("Successfully toggled role {:?}!", role_choice))
         .await
-        .context("Failed to send message!")?;
+        .context("Failed to send message")?;
 
     Ok(())
 }
