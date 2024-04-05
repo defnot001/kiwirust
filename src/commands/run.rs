@@ -33,6 +33,16 @@ pub async fn run(
         .await?
         .unwrap_or("Command ran successfully but there was no response.".to_string());
 
+    if response.len() > 2000 {
+        return Err(anyhow::anyhow!(
+            "Command ran successfully but the response was too long to send."
+        ));
+    }
+
+    ctx.say(format!("```{response}```"))
+        .await
+        .context("Failed to send response")?;
+
     Ok(())
 }
 
