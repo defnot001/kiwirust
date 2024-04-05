@@ -26,21 +26,32 @@ pub async fn animal(
 ) -> anyhow::Result<()> {
     ctx.defer().await?;
 
-    let image_link = get_image_link(animal)
+    let image_link = match get_image_link(animal).await {
+        Ok(link) => link,
+        Err(e) => {
+            tracing::error!("Failed to get image link: {:?}", e);
+            return Err(e).context("Failed to get image link");
+        }
+    };
+
+    let attachment = match CreateAttachment::url(ctx, image_link.as_str()).await {
+        Ok(attachment) => attachment,
+        Err(e) => {
+            tracing::error!("Failed to create attachment: {:?}", e);
+            return Err(e).context("Failed to create attachment");
+        }
+    };
+
+    match ctx
+        .send(CreateReply::default().attachment(attachment))
         .await
-        .context("Failed to get image link")?;
-
-    tracing::info!("Image link: {}", image_link);
-
-    let attachment = CreateAttachment::url(ctx, image_link.as_str())
-        .await
-        .context("Failed to create attachment")?;
-
-    ctx.send(CreateReply::default().attachment(attachment))
-        .await
-        .context("Failed to reply to the command")?;
-
-    Ok(())
+    {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            tracing::error!("Failed to send message: {:?}", e);
+            return Err(e).context("Failed to send message");
+        }
+    }
 }
 
 async fn get_image_link(animal: AnimalChoice) -> anyhow::Result<String> {
