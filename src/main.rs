@@ -5,7 +5,7 @@ mod config;
 mod events;
 mod util;
 
-use commands::{animal, help, run};
+use commands::{animal, help, roletoggle, run};
 use config::Config;
 use events::event_handler;
 
@@ -46,7 +46,12 @@ async fn main() -> anyhow::Result<()> {
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![animal::animal(), help::help(), run::run()],
+            commands: vec![
+                animal::animal(),
+                help::help(),
+                run::run(),
+                roletoggle::roletoggle(),
+            ],
             event_handler: |ctx, event, framework, _data| {
                 Box::pin(event_handler(ctx, event, framework))
             },
