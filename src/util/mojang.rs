@@ -1,9 +1,10 @@
 use anyhow::Context;
 use serde::Deserialize;
+use uuid::Uuid;
 
 #[derive(Debug, Deserialize)]
 pub struct MojangProfile {
-    pub id: String,
+    pub id: Uuid,
     pub name: String,
 }
 
@@ -12,7 +13,7 @@ pub struct MojangAPI;
 impl MojangAPI {
     pub async fn get_profile(username: impl AsRef<str>) -> anyhow::Result<MojangProfile> {
         reqwest::get(format!(
-            "https://api.mojang.com/users/profiles/minecraft/${}",
+            "https://api.mojang.com/users/profiles/minecraft/{}",
             username.as_ref()
         ))
         .await
