@@ -10,7 +10,7 @@ use commands::{animal, help, info, mcskin, roletoggle, run};
 use config::Config;
 use events::event_handler;
 
-use poise::{serenity_prelude as serenity};
+use poise::serenity_prelude as serenity;
 use sqlx::postgres::PgPoolOptions;
 
 #[derive(Debug, Clone)]
@@ -60,7 +60,9 @@ async fn main() -> anyhow::Result<()> {
             },
             on_error: |error| {
                 Box::pin(async move {
-                    error::error_handler(error).await.expect("Failed to recover from error!");
+                    error::error_handler(error)
+                        .await
+                        .expect("Failed to recover from error!");
                 })
             },
             ..Default::default()
