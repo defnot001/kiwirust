@@ -37,17 +37,17 @@ pub async fn run_rcon_command(
             );
 
             if response.is_empty() {
-                return Ok(None);
+                Ok(None)
             } else {
-                return Ok(Some(response));
+                Ok(Some(response))
             }
         }
         Err(e) => {
             tracing::error!("Error executing command \"{}\" on {server}: {e}", &command,);
-            return Err(anyhow::anyhow!(
+            Err(anyhow::anyhow!(
                 "Error executing command \"{}\" on {server}",
                 &command,
-            ));
+            ))
         }
     }
 }

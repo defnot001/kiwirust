@@ -1,4 +1,4 @@
-#![allow(dead_code, unused)]
+// #![allow(dead_code, unused)]
 
 mod commands;
 mod config;
@@ -10,7 +10,7 @@ use commands::{animal, help, info, mcskin, roletoggle, run};
 use config::Config;
 use events::event_handler;
 
-use poise::{serenity_prelude as serenity, FrameworkError};
+use poise::{serenity_prelude as serenity};
 use sqlx::postgres::PgPoolOptions;
 
 #[derive(Debug, Clone)]
@@ -42,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
         | serenity::GatewayIntents::GUILD_MESSAGE_REACTIONS
         | serenity::GatewayIntents::GUILD_EMOJIS_AND_STICKERS;
 
-    let register_guild_id = serenity::GuildId::from(config.bot.guild_id.clone());
+    let register_guild_id = config.bot.guild_id;
     let bot_token = config.bot.token.clone();
 
     let framework = poise::Framework::builder()
@@ -60,7 +60,7 @@ async fn main() -> anyhow::Result<()> {
             },
             on_error: |error| {
                 Box::pin(async move {
-                    error::error_handler(error).await;
+                    error::error_handler(error).await.expect("Failed to recover from error!");
                 })
             },
             ..Default::default()

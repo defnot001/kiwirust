@@ -35,7 +35,7 @@ pub async fn help(
         }
     };
 
-    let embed = default_embed(&ctx.author()).description(content);
+    let embed = default_embed(ctx.author()).description(content);
 
     ctx.send(CreateReply::default().embed(embed)).await?;
 

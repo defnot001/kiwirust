@@ -1,7 +1,3 @@
-use ::serenity::all::Member;
-use anyhow::Context;
-use poise::serenity_prelude as serenity;
-
 use crate::{
     config::ServerChoice,
     util::{

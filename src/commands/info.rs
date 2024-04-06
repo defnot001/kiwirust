@@ -1,16 +1,12 @@
-use std::collections::HashMap;
-
 use anyhow::Context;
-use chrono::{DateTime, Utc};
 use poise::CreateReply;
-use serde::ser::Error;
-use serenity::all::{Builder, Member, PartialGuild, RichInvite, RoleId, User, UserId};
-use serenity::builder::CreateInvite;
-use serenity::futures::io::ReadToString;
+use serenity::all::{PartialGuild, RichInvite, RoleId, User};
+use serenity::builder::{CreateAttachment, CreateInvite};
+use url::Url;
 
 use crate::error::respond_error;
 use crate::util::builder::default_embed;
-use crate::util::format::{display_time, escape_markdown, time};
+use crate::util::format::{display_time};
 use crate::Context as AppContext;
 
 /// Get information.
@@ -20,7 +16,7 @@ use crate::Context as AppContext;
     subcommands("server", "user", "members", "admins", "avatar"),
     subcommand_required
 )]
-pub async fn info(ctx: AppContext<'_>) -> anyhow::Result<()> {
+pub async fn info(_: AppContext<'_>) -> anyhow::Result<()> {
     Ok(())
 }
 
@@ -45,7 +41,7 @@ async fn server(ctx: AppContext<'_>) -> anyhow::Result<()> {
         return Ok(());
     };
 
-    let embed = default_embed(&ctx.author())
+    let embed = default_embed(ctx.author())
         .title(format!("Server Info {}", partial_guild.name))
         .field("Membercount", member_count.to_string(), false)
         .field("Guild Created At", display_time(created_at), false)
@@ -76,7 +72,7 @@ async fn members(ctx: AppContext<'_>) -> anyhow::Result<()> {
 
     let member_names = get_member_names_per_role(&ctx, &partial_guild, &members_role_id).await?;
 
-    let embed = default_embed(&ctx.author())
+    let embed = default_embed(ctx.author())
         .title("Info Members")
         .description(member_names.join("\n"))
         .field("Member Count", member_names.len().to_string(), false)
@@ -98,7 +94,7 @@ async fn admins(ctx: AppContext<'_>) -> anyhow::Result<()> {
 
     let admin_names = get_member_names_per_role(&ctx, &partial_guild, &admin_role_id).await?;
 
-    let embed = default_embed(&ctx.author())
+    let embed = default_embed(ctx.author())
         .title("Info Admins")
         .description(admin_names.join("\n"))
         .field("Admin Count", admin_names.len().to_string(), false)
@@ -114,6 +110,21 @@ async fn avatar(
     ctx: AppContext<'_>,
     #[description = "Select a user."] target: User,
 ) -> anyhow::Result<()> {
+    let mut avatar_url = Url::parse(target.avatar_url().unwrap_or(target.default_avatar_url()).as_str())?;
+
+    if avatar_url.query().is_none() {
+        anyhow::bail!("Failed to parse url size query param in url: {}", avatar_url.as_str());
+    };
+
+    avatar_url.set_query(Some("size=4096"));
+
+    let attachment = CreateAttachment::url(&ctx, avatar_url.as_str()).await?;
+
+    ctx.send(CreateReply::default().attachment(attachment))
+        .await
+        .context("Failed to send message")?;
+
+
     Ok(())
 }
 
@@ -135,7 +146,7 @@ async fn create_invite(ctx: &AppContext<'_>) -> anyhow::Result<RichInvite> {
             .await
             .context("Failed to create invite"),
         None => {
-            return Err(anyhow::anyhow!("Failed to get invite channel channel."));
+            Err(anyhow::anyhow!("Failed to get invite channel channel."))
         }
     }
 }

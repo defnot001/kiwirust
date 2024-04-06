@@ -3,7 +3,6 @@ use std::{fmt::Display, num::NonZeroU64};
 use anyhow::Context;
 use poise::serenity_prelude as serenity;
 use serde::Deserialize;
-use serde_json::ser::Formatter;
 
 #[derive(Debug, poise::ChoiceParameter)]
 pub enum ServerChoice {

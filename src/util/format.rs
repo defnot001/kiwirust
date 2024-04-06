@@ -18,32 +18,32 @@ pub enum TimestampStyle {
 }
 
 impl HasNameAndID for User {
-    fn id(&self) -> Cow<str> {
-        self.id.to_string().into()
-    }
-
     fn name(&self) -> &str {
         &self.name
+    }
+
+    fn id(&self) -> Cow<str> {
+        self.id.to_string().into()
     }
 }
 
 impl HasNameAndID for PartialGuild {
-    fn id(&self) -> Cow<str> {
-        self.id.to_string().into()
-    }
-
     fn name(&self) -> &str {
         &self.name
+    }
+
+    fn id(&self) -> Cow<str> {
+        self.id.to_string().into()
     }
 }
 
 impl HasNameAndID for GuildChannel {
-    fn id(&self) -> Cow<str> {
-        self.id.to_string().into()
-    }
-
     fn name(&self) -> &str {
         &self.name
+    }
+
+    fn id(&self) -> Cow<str> {
+        self.id.to_string().into()
     }
 }
 

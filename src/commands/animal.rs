@@ -1,6 +1,5 @@
 use anyhow::Context;
 use poise::CreateReply;
-use serde::Deserialize;
 use serenity::all::CreateAttachment;
 
 use crate::{error::respond_error, Context as AppContext};
@@ -12,11 +11,6 @@ pub enum AnimalChoice {
     Dog,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct FoxResponse {
-    image: String,
-    link: String,
-}
 
 /// Get random pictures of animals.
 #[poise::command(slash_command, guild_only = true)]

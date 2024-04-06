@@ -124,7 +124,7 @@ pub async fn mcskin(
     };
 
     let Some(content_type) = res.headers().get("content-type") else {
-        ctx.say("Header content-type not found");
+        ctx.say("Header content-type not found").await?;
         return Err(anyhow::anyhow!("Header content-type not found"));
     };
 

@@ -3,41 +3,59 @@ use poise::FrameworkError;
 use crate::Context as AppContext;
 use crate::Data;
 
-pub async fn error_handler<'a>(error: FrameworkError<'a, Data, anyhow::Error>) {
+pub async fn error_handler<'a>(error: FrameworkError<'a, Data, anyhow::Error>) -> anyhow::Result<()> {
     match error {
         FrameworkError::Command { error, ctx, .. } => {
-            ctx.reply("There was an error trying to execute that command.")
-                .await
-                .map_err(|e| tracing::error!("Failed to send error message: {:?}", e));
-
             tracing::error!("Command error: {:?}", error);
+
+            match ctx.reply("There was an error trying to execute that command.")
+                .await {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    tracing::error!("Failed to send error message: {:?}", e);
+                    Ok(())
+                }
+            }
         }
         FrameworkError::CommandPanic { payload, ctx, .. } => {
-            ctx.reply("Oops, something went terribly wrong. Please try again later.")
-                .await
-                .map_err(|e| tracing::error!("Failed to send error message: {:?}", e));
-
             tracing::error!("Command panic: {:?}", payload);
+
+            match ctx.reply("Oops, something went terribly wrong. Please try again later.").await {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    tracing::error!("Failed to send error message: {:?}", e);
+                    Ok(())
+                }
+            }
         }
         FrameworkError::GuildOnly { ctx, .. } => {
-            ctx.reply("This command can only be used in a server.")
-                .await
-                .map_err(|e| tracing::error!("Failed to send error message: {:?}", e));
-
             tracing::error!(
                 "Guild-only command {} was used outside of a guild.",
                 ctx.command().name.clone()
             );
+
+            match ctx.reply("This command can only be used in a server.").await {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    tracing::error!("Failed to send error message: {:?}", e);
+                    Ok(())
+                }
+            }
         }
         FrameworkError::SubcommandRequired { ctx } => {
-            ctx.reply("This command requires a subcommand.")
-                .await
-                .map_err(|e| tracing::error!("Failed to send error message: {:?}", e));
-
             tracing::error!(
                 "Command {} requires a subcommand but none was provided.",
                 ctx.command().name.clone()
             );
+
+            match ctx.reply("This command requires a subcommand.")
+                .await {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    tracing::error!("Failed to send error message: {:?}", e);
+                    Ok(())
+                }
+            }
         }
         FrameworkError::EventHandler { error, event, .. } => {
             tracing::error!(
@@ -45,6 +63,8 @@ pub async fn error_handler<'a>(error: FrameworkError<'a, Data, anyhow::Error>) {
                 event.snake_case_name(),
                 error
             );
+
+            Ok(())
         }
         FrameworkError::Setup {
             error,
@@ -53,9 +73,13 @@ pub async fn error_handler<'a>(error: FrameworkError<'a, Data, anyhow::Error>) {
         } => {
             let username = data_about_bot.user.name.clone();
             tracing::error!("Failed to setup framework for {username}: {:#?}", error);
+
+            Ok(())
         }
         other => {
             tracing::error!("Unhandled framework error: {:?}", other);
+
+            Ok(())
         }
     }
 }

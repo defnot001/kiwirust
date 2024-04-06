@@ -1,7 +1,5 @@
 use serenity::all::{CreateEmbed, CreateEmbedFooter, User};
 
-use crate::Context;
-
 pub fn default_embed(user: &User) -> CreateEmbed {
     let footer = CreateEmbedFooter::new(format!(
         "Requested by {}",

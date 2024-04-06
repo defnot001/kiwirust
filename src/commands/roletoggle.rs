@@ -1,6 +1,4 @@
-use anyhow::Context;
-
-use crate::{error::respond_error, util::format::display, Context as AppContext};
+use crate::{util::format::display, Context as AppContext};
 
 #[derive(Debug, poise::ChoiceParameter)]
 enum RoleChoice {
@@ -25,16 +23,6 @@ pub async fn roletoggle(
         ctx.say(message).await?;
 
         return Ok(());
-    };
-
-    let Some(guild) = ctx.partial_guild().await else {
-        if let Some(guild_id) = ctx.guild_id() {
-            tracing::error!("Cannot get guild with id {} from the interaction", guild_id);
-        } else {
-            tracing::error!("Cannot get guild from the interaction.");
-        }
-
-        return Err(anyhow::anyhow!("Cannot get guild from the interaction!"));
     };
 
     let role_id = match role_choice {
