@@ -2,14 +2,15 @@
 
 mod commands;
 mod config;
+mod error;
 mod events;
 mod util;
 
-use commands::{animal, help, mcskin, roletoggle, run};
+use commands::{animal, help, info, mcskin, roletoggle, run};
 use config::Config;
 use events::event_handler;
 
-use poise::serenity_prelude as serenity;
+use poise::{serenity_prelude as serenity, FrameworkError};
 use sqlx::postgres::PgPoolOptions;
 
 #[derive(Debug, Clone)]
@@ -52,9 +53,15 @@ async fn main() -> anyhow::Result<()> {
                 run::run(),
                 roletoggle::roletoggle(),
                 mcskin::mcskin(),
+                info::info(),
             ],
             event_handler: |ctx, event, framework, _data| {
                 Box::pin(event_handler(ctx, event, framework))
+            },
+            on_error: |error| {
+                Box::pin(async move {
+                    error::error_handler(error).await;
+                })
             },
             ..Default::default()
         })
