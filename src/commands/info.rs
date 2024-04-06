@@ -4,7 +4,7 @@ use anyhow::Context;
 use chrono::{DateTime, Utc};
 use poise::CreateReply;
 use serde::ser::Error;
-use serenity::all::{Builder, Member, RichInvite, User, UserId};
+use serenity::all::{Builder, Member, PartialGuild, RichInvite, RoleId, User, UserId};
 use serenity::builder::CreateInvite;
 use serenity::futures::io::ReadToString;
 
@@ -72,25 +72,14 @@ async fn members(ctx: AppContext<'_>) -> anyhow::Result<()> {
     };
 
     let partial_guild = guild_id.to_partial_guild(&ctx).await?;
-
     let members_role_id = ctx.data().config.roles.members;
 
-    let mut members: Vec<String> = ctx
-        .cache()
-        .guild(guild_id)
-        .and_then(|g| Some(g.members.clone()))
-        .unwrap_or_default()
-        .into_iter()
-        .filter(|(_, member)| member.roles.contains(&members_role_id))
-        .map(|(_, member)| escape_markdown(member.user.name.clone()))
-        .collect();
-
-    members.sort_unstable();
+    let member_names = get_member_names_per_role(&ctx, &partial_guild, &members_role_id).await?;
 
     let embed = default_embed(&ctx.author())
         .title("Info Members")
-        .description(members.join("\n"))
-        .field("Member Count", members.len().to_string(), false)
+        .description(member_names.join("\n"))
+        .field("Member Count", member_names.len().to_string(), false)
         .thumbnail(partial_guild.icon_url().unwrap_or_default());
 
     ctx.send(CreateReply::default().embed(embed)).await?;
@@ -100,6 +89,23 @@ async fn members(ctx: AppContext<'_>) -> anyhow::Result<()> {
 
 #[poise::command(slash_command)]
 async fn admins(ctx: AppContext<'_>) -> anyhow::Result<()> {
+    let Some(guild_id) = ctx.guild_id() else {
+        anyhow::bail!("Failed to get guild id.");
+    };
+
+    let partial_guild = guild_id.to_partial_guild(&ctx).await?;
+    let admin_role_id = ctx.data().config.roles.admin;
+
+    let admin_names = get_member_names_per_role(&ctx, &partial_guild, &admin_role_id).await?;
+
+    let embed = default_embed(&ctx.author())
+        .title("Info Admins")
+        .description(admin_names.join("\n"))
+        .field("Admin Count", admin_names.len().to_string(), false)
+        .thumbnail(partial_guild.icon_url().unwrap_or_default());
+
+    ctx.send(CreateReply::default().embed(embed)).await?;
+
     Ok(())
 }
 
@@ -132,4 +138,20 @@ async fn create_invite(ctx: &AppContext<'_>) -> anyhow::Result<RichInvite> {
             return Err(anyhow::anyhow!("Failed to get invite channel channel."));
         }
     }
+}
+
+async fn get_member_names_per_role(ctx: &AppContext<'_>, guild: &PartialGuild, role_id: &RoleId) -> anyhow::Result<Vec<String>> {
+    let members = guild.members(&ctx, None, None).await?;
+
+    let mut member_names = Vec::new();
+
+    for member in members {
+        if member.roles.contains(role_id) {
+            member_names.push(member.user.global_name.unwrap_or(member.user.name));
+        }
+    }
+
+    member_names.sort_unstable();
+
+    Ok(member_names)
 }
