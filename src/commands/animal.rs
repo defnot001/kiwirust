@@ -3,7 +3,7 @@ use poise::CreateReply;
 use serde::Deserialize;
 use serenity::all::CreateAttachment;
 
-use crate::Context as AppContext;
+use crate::{error::respond_error, Context as AppContext};
 
 #[derive(Debug, poise::ChoiceParameter)]
 pub enum AnimalChoice {
@@ -29,29 +29,22 @@ pub async fn animal(
     let image_link = match get_image_link(animal).await {
         Ok(link) => link,
         Err(e) => {
-            tracing::error!("Failed to get image link: {:?}", e);
-            return Err(e).context("Failed to get image link");
+            return respond_error("Failed to get image link", e, &ctx).await;
         }
     };
 
     let attachment = match CreateAttachment::url(ctx, image_link.as_str()).await {
         Ok(attachment) => attachment,
         Err(e) => {
-            tracing::error!("Failed to create attachment: {:?}", e);
-            return Err(e).context("Failed to create attachment");
+            return respond_error("Failed to create attachment", e, &ctx).await;
         }
     };
 
-    match ctx
-        .send(CreateReply::default().attachment(attachment))
+    ctx.send(CreateReply::default().attachment(attachment))
         .await
-    {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            tracing::error!("Failed to send message: {:?}", e);
-            return Err(e).context("Failed to send message");
-        }
-    }
+        .context("Failed to send message")?;
+
+    Ok(())
 }
 
 async fn get_image_link(animal: AnimalChoice) -> anyhow::Result<String> {

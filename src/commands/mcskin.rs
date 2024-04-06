@@ -3,7 +3,7 @@ use std::fmt::Display;
 use anyhow::Context;
 use poise::{serenity_prelude as serenity, CreateReply};
 
-use crate::{util::mojang::MojangAPI, Context as AppContext};
+use crate::{error::respond_error, util::mojang::MojangAPI, Context as AppContext};
 
 #[derive(Debug, poise::ChoiceParameter)]
 enum SkinPositionChoice {
@@ -82,13 +82,14 @@ pub async fn mcskin(
     ctx.defer().await?;
 
     if player_name.trim().is_empty() {
-        return Err(anyhow::anyhow!("Player name cannot be empty."));
+        ctx.say("Player name cannot be empty.").await?;
+        return Ok(());
     }
 
     let allowed_render_types = get_allowed_render_types(&position);
 
     if !allowed_render_types.contains(&render_type) {
-        return Err(anyhow::anyhow!(
+        ctx.say(format!(
             "Render type {} is not allowed for position {}! This position only allows {}.",
             render_type,
             position,
@@ -97,21 +98,33 @@ pub async fn mcskin(
                 .map(|x| x.to_string())
                 .collect::<Vec<_>>()
                 .join(", ")
-        ));
+        ))
+        .await?;
+        return Ok(());
     }
 
-    let mojang_profile = MojangAPI::get_profile(&player_name).await?;
+    let mojang_profile = match MojangAPI::get_profile(&player_name).await {
+        Ok(profile) => profile,
+        Err(e) => {
+            return respond_error(format!("Failed to get profile for {player_name}"), e, &ctx)
+                .await;
+        }
+    };
 
     let skin_url = format!(
         "https://starlightskins.lunareclipse.studio/render/{position}/{}/{render_type}",
         mojang_profile.id,
     );
 
-    let res = reqwest::get(&skin_url)
-        .await
-        .context("Failed to get skin")?;
+    let res = match reqwest::get(&skin_url).await {
+        Ok(res) => res,
+        Err(e) => {
+            return respond_error("Failed to get skin", e, &ctx).await;
+        }
+    };
 
     let Some(content_type) = res.headers().get("content-type") else {
+        ctx.say("Header content-type not found");
         return Err(anyhow::anyhow!("Header content-type not found"));
     };
 
@@ -147,13 +160,9 @@ pub async fn mcskin(
         format!("{}.{}", &player_name, file_extension),
     ));
 
-    match ctx.send(reply).await {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            tracing::error!("Failed to send message: {:?}", e);
-            return Err(e).context("Failed to send message");
-        }
-    }
+    ctx.send(reply).await?;
+
+    Ok(())
 }
 
 fn get_allowed_render_types(pos: &SkinPositionChoice) -> Vec<RenderTypeChoice> {

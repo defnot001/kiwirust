@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use anyhow::Context;
 use poise::CreateReply;
 
-use crate::{util::builder::default_embed, Context as AppContext};
+use crate::{error::respond_error, util::builder::default_embed, Context as AppContext};
 
 #[derive(Debug, poise::ChoiceParameter)]
 enum HelpChoice {
@@ -28,16 +28,18 @@ pub async fn help(
 ) -> anyhow::Result<()> {
     ctx.defer().await?;
 
-    let content = read_help_file(&thing).await?;
+    let content = match read_help_file(&thing).await {
+        Ok(content) => content,
+        Err(e) => {
+            return respond_error("Failed to read help file", e, &ctx).await;
+        }
+    };
+
     let embed = default_embed(&ctx.author()).description(content);
 
-    match ctx.send(CreateReply::default().embed(embed)).await {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            tracing::error!("Failed to send message: {:?}", e);
-            return Err(e).context("Failed to send message");
-        }
-    }
+    ctx.send(CreateReply::default().embed(embed)).await?;
+
+    Ok(())
 }
 
 async fn read_help_file(choice: &HelpChoice) -> anyhow::Result<String> {
@@ -50,11 +52,7 @@ async fn read_help_file(choice: &HelpChoice) -> anyhow::Result<String> {
         HelpChoice::Mushroom => help_dir_path.join("mushroom.md"),
     };
 
-    match tokio::fs::read_to_string(file_path).await {
-        Ok(content) => Ok(content),
-        Err(e) => {
-            tracing::error!("Error reading help file: {}", e);
-            Err(e.into())
-        }
-    }
+    tokio::fs::read_to_string(file_path)
+        .await
+        .context("Failed to read help file")
 }

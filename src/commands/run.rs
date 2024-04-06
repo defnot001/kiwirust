@@ -22,14 +22,16 @@ pub async fn run(
 
     if let ServerChoice::Smp = server_choice {
         if !is_interaction_from_admin(&ctx).await? {
-            return Err(anyhow::anyhow!(
-                "You must be an admin to run arbitrary commands on SMP!"
-            ));
+            ctx.say("You must be an admin to run arbitrary commands on SMP!")
+                .await?;
+
+            return Ok(());
         }
     }
 
     if command.is_empty() {
-        return Err(anyhow::anyhow!("Command string cannot be empty."));
+        ctx.say("Command string cannot be empty.").await?;
+        return Ok(());
     }
 
     let mut response = run_rcon_command(&server_choice, &ctx.data().config, command)
@@ -41,13 +43,9 @@ pub async fn run(
         response.push_str("...\n\nResponse was too long and was truncated.");
     }
 
-    match ctx.say(block_code(response)).await {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            tracing::error!("Failed to send message: {:?}", e);
-            Err(e).context("Failed to send message")
-        }
-    }
+    ctx.say(block_code(response)).await?;
+
+    Ok(())
 }
 
 async fn is_interaction_from_admin(ctx: &AppContext<'_>) -> anyhow::Result<bool> {

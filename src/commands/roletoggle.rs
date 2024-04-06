@@ -1,6 +1,6 @@
 use anyhow::Context;
 
-use crate::{util::format::display, Context as AppContext};
+use crate::{error::respond_error, util::format::display, Context as AppContext};
 
 #[derive(Debug, poise::ChoiceParameter)]
 enum RoleChoice {
@@ -17,12 +17,14 @@ pub async fn roletoggle(
     ctx.defer_ephemeral().await?;
 
     let Some(member) = ctx.author_member().await else {
-        tracing::error!(
-            "Cannot get member from the interaction. Is user {} not a member of the server?",
+        let message = format!(
+            "Cannot get member from the interaction. User {} might not be a member of the guild",
             display(ctx.author())
         );
+        tracing::error!("{}", message);
+        ctx.say(message).await?;
 
-        return Err(anyhow::anyhow!("Cannot get member from the interaction!",));
+        return Ok(());
     };
 
     let Some(guild) = ctx.partial_guild().await else {
@@ -50,7 +52,8 @@ pub async fn roletoggle(
                 display(ctx.author()),
             );
 
-            return Err(e).context("Failed to remove role");
+            ctx.say("Failed to remove role").await?;
+            return Ok(());
         }
     } else {
         let res = member.add_role(&ctx, role_id).await;
@@ -62,23 +65,13 @@ pub async fn roletoggle(
                 display(ctx.author()),
             );
 
-            return Err(e).context("Failed to add role");
+            ctx.say("Failed to add role").await?;
+            return Ok(());
         }
     }
 
-    match ctx
-        .say(format!("Successfully toggled role {:?}!", role_choice))
-        .await
-    {
-        Ok(_) => Ok(()),
-        Err(e) => {
-            tracing::error!(
-                "Failed to send message after toggling role {:?} for {}: {e}",
-                role_choice,
-                display(ctx.author()),
-            );
+    ctx.say(format!("Successfully toggled role {:?}!", role_choice))
+        .await?;
 
-            Err(e).context("Failed to send message")
-        }
-    }
+    Ok(())
 }
