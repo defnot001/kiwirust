@@ -86,6 +86,14 @@ pub fn escape_markdown(input: impl Into<String>) -> String {
     output
 }
 
+pub fn display_time(date_time: chrono::DateTime<chrono::Utc>) -> String {
+    format!(
+        "{}\n{}",
+        time(date_time, TimestampStyle::LongDate),
+        time(date_time, TimestampStyle::Relative)
+    )
+}
+
 pub fn time(date_time: chrono::DateTime<chrono::Utc>, style: TimestampStyle) -> String {
     let timestamp = date_time.timestamp();
 
