@@ -20,6 +20,8 @@ pub struct Config {
     pub database: DatabaseConfig,
     pub minecraft: MinecraftConfig,
     pub roles: RoleConfig,
+    pub channels: ChannelConfig,
+    pub categories: CategoryConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -60,6 +62,26 @@ pub struct RoleConfig {
     pub pingpong: serenity::RoleId,
     pub trial: serenity::RoleId,
     pub kiwi_inc: serenity::RoleId,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct ChannelConfig {
+    pub member_log: serenity::ChannelId,
+    pub mod_log: serenity::ChannelId,
+    pub bot_log: serenity::ChannelId,
+    pub invite: serenity::ChannelId,
+    pub resources: serenity::ChannelId,
+    pub server_info: serenity::ChannelId,
+    pub todo: serenity::ChannelId,
+    pub todo_log: serenity::ChannelId,
+    pub application: serenity::ChannelId,
+    pub application_voting: serenity::ChannelId,
+    pub member_general: serenity::ChannelId,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct CategoryConfig {
+    pub application: serenity::ChannelId,
 }
 
 impl Config {
