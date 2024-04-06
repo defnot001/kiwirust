@@ -11,7 +11,6 @@ pub enum AnimalChoice {
     Dog,
 }
 
-
 /// Get random pictures of animals.
 #[poise::command(slash_command, guild_only = true)]
 pub async fn animal(
