@@ -3,13 +3,17 @@ use poise::FrameworkError;
 use crate::Context as AppContext;
 use crate::Data;
 
-pub async fn error_handler<'a>(error: FrameworkError<'a, Data, anyhow::Error>) -> anyhow::Result<()> {
+pub async fn error_handler<'a>(
+    error: FrameworkError<'a, Data, anyhow::Error>,
+) -> anyhow::Result<()> {
     match error {
         FrameworkError::Command { error, ctx, .. } => {
             tracing::error!("Command error: {:?}", error);
 
-            match ctx.reply("There was an error trying to execute that command.")
-                .await {
+            match ctx
+                .reply("There was an error trying to execute that command.")
+                .await
+            {
                 Ok(_) => Ok(()),
                 Err(e) => {
                     tracing::error!("Failed to send error message: {:?}", e);
@@ -20,7 +24,10 @@ pub async fn error_handler<'a>(error: FrameworkError<'a, Data, anyhow::Error>) -
         FrameworkError::CommandPanic { payload, ctx, .. } => {
             tracing::error!("Command panic: {:?}", payload);
 
-            match ctx.reply("Oops, something went terribly wrong. Please try again later.").await {
+            match ctx
+                .reply("Oops, something went terribly wrong. Please try again later.")
+                .await
+            {
                 Ok(_) => Ok(()),
                 Err(e) => {
                     tracing::error!("Failed to send error message: {:?}", e);
@@ -34,7 +41,10 @@ pub async fn error_handler<'a>(error: FrameworkError<'a, Data, anyhow::Error>) -
                 ctx.command().name.clone()
             );
 
-            match ctx.reply("This command can only be used in a server.").await {
+            match ctx
+                .reply("This command can only be used in a server.")
+                .await
+            {
                 Ok(_) => Ok(()),
                 Err(e) => {
                     tracing::error!("Failed to send error message: {:?}", e);
@@ -48,8 +58,7 @@ pub async fn error_handler<'a>(error: FrameworkError<'a, Data, anyhow::Error>) -
                 ctx.command().name.clone()
             );
 
-            match ctx.reply("This command requires a subcommand.")
-                .await {
+            match ctx.reply("This command requires a subcommand.").await {
                 Ok(_) => Ok(()),
                 Err(e) => {
                     tracing::error!("Failed to send error message: {:?}", e);
