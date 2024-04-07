@@ -15,6 +15,11 @@ struct DbTodo {
     updated_at: NaiveDateTime,
 }
 
+#[derive(Debug, FromRow)]
+struct TodoTitle {
+    title: String,
+}
+
 #[derive(Debug)]
 pub struct Todo {
     pub id: i32,
@@ -121,17 +126,14 @@ impl TodoModelController {
         Ok(response)
     }
 
-    pub async fn get_all_by_type(
-        db_pool: &PgPool,
-        todo_choice: &TodoChoice,
-    ) -> anyhow::Result<Vec<Todo>> {
-        sqlx::query_as::<_, DbTodo>("SELECT * FROM todos WHERE type = $1;")
-            .bind(todo_choice.to_string())
+    pub async fn all_titles(db_pool: &PgPool) -> Vec<String> {
+        sqlx::query_as::<_, TodoTitle>("SELECT title FROM todos;")
             .fetch_all(db_pool)
-            .await?
+            .await
+            .unwrap_or_default()
             .into_iter()
-            .map(Todo::try_from)
-            .collect::<Result<Vec<Todo>, _>>()
+            .map(|db_title| db_title.title)
+            .collect::<Vec<String>>()
     }
 
     pub async fn delete_by_title(db_pool: &PgPool, title: impl Into<String>) -> anyhow::Result<()> {

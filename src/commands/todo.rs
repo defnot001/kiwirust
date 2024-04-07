@@ -1,5 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
+use poise::serenity_prelude as serenity;
 use serenity::all::{
     CreateEmbed, CreateEmbedFooter, CreateMessage, GetMessages, GuildChannel, Timestamp,
 };
@@ -95,7 +96,9 @@ pub async fn add(
 #[poise::command(slash_command, guild_only = true)]
 pub async fn update(
     ctx: AppContext<'_>,
-    #[description = "The title of the todo item you want to change."] old_title: String,
+    #[autocomplete = "autocomplete_all"]
+    #[description = "The title of the todo item you want to change."]
+    old_title: String,
     #[description = "The title you want to change it to."] new_title: String,
 ) -> anyhow::Result<()> {
     if old_title.trim().is_empty() || new_title.trim().is_empty() {
@@ -134,7 +137,9 @@ pub async fn update(
 #[poise::command(slash_command, guild_only = true)]
 pub async fn complete(
     ctx: AppContext<'_>,
-    #[description = "The title of the todo you want to complete."] title: String,
+    #[description = "The title of the todo you want to complete."]
+    #[autocomplete = "autocomplete_all"]
+    title: String,
 ) -> anyhow::Result<()> {
     if title.trim().is_empty() {
         ctx.say("Title cannot be empty!").await?;
@@ -255,4 +260,12 @@ async fn clear_channel(channel: &GuildChannel, ctx: &AppContext<'_>) -> anyhow::
     }
 
     Ok(())
+}
+
+async fn autocomplete_all(ctx: AppContext<'_>, partial: &str) -> Vec<String> {
+    TodoModelController::all_titles(&ctx.data().db_pool)
+        .await
+        .into_iter()
+        .filter(|title| title.starts_with(partial))
+        .collect()
 }

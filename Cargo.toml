@@ -10,6 +10,7 @@ serenity = { version = "0.12.1", features = ["cache", "model"] }
 poise = { version = "0.6.1", features = ["handle_panics"] }
 tokio = { version = "1.37.0", features = ["rt-multi-thread"] }
 serde = { version = "1.0.197", features = ["derive"] }
+futures = "0.3.13"
 serde_json = "1.0.115"
 sqlx = { version = "0.7.4", features = [
     "runtime-tokio",
