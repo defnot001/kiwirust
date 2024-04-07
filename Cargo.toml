@@ -16,6 +16,7 @@ sqlx = { version = "0.7.4", features = [
     "postgres",
     "time",
     "chrono",
+    "uuid"
 ] }
 reqwest = { version = "0.12.2", features = ["json"] }
 rcon = { version = "0.6.0", features = ["rt-tokio"] }
