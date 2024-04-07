@@ -83,7 +83,7 @@ pub struct TodoModelController;
 
 impl TodoModelController {
     pub async fn create(db_pool: &PgPool, todo: CreateTodo) -> anyhow::Result<()> {
-        sqlx::query("INSERT INTO todos (title, type, created_by) VALUES ($1, $2, $3) RETURNING *;")
+        sqlx::query("INSERT INTO todos (title, type, created_by) VALUES ($1, $2, $3);")
             .bind(todo.title)
             .bind(todo.todo_type.to_string())
             .bind(todo.created_by.to_string())
@@ -151,7 +151,7 @@ impl TodoModelController {
         old: impl Into<String>,
         new: impl Into<String>,
     ) -> anyhow::Result<()> {
-        sqlx::query("UPDATE todos SET title = $1 WHERE title = $2 RETURNING *;")
+        sqlx::query("UPDATE todos SET title = $1 WHERE title = $2;")
             .bind(new.into())
             .bind(old.into())
             .execute(db_pool)
