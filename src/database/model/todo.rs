@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use serenity::all::UserId;
 use sqlx::{prelude::FromRow, PgPool};
 
@@ -8,10 +8,11 @@ use crate::commands::todo::TodoChoice;
 struct DbTodo {
     id: i32,
     title: String,
-    type_field: String,
+    #[sqlx(rename = "type")]
+    todo_type: String,
     created_by: String,
-    created_at: DateTime<Utc>,
-    updated_at: DateTime<Utc>,
+    created_at: NaiveDateTime,
+    updated_at: NaiveDateTime,
 }
 
 #[derive(Debug)]
@@ -49,10 +50,10 @@ impl TryFrom<DbTodo> for Todo {
             anyhow::bail!("Todo title cannot be empty")
         }
 
-        let todo_type = match db_todo.type_field.as_str() {
+        let todo_type = match db_todo.todo_type.as_str() {
             "survival" => TodoChoice::Survival,
             "creative" => TodoChoice::Creative,
-            _ => anyhow::bail!(" \"{}\" is not a valid todo type", db_todo.type_field),
+            _ => anyhow::bail!(" \"{}\" is not a valid todo type", db_todo.todo_type),
         };
 
         let created_by = UserId::from(db_todo.created_by.parse::<u64>()?);
@@ -60,8 +61,8 @@ impl TryFrom<DbTodo> for Todo {
         Ok(Todo {
             id: db_todo.id,
             title: db_todo.title,
-            created_at: db_todo.created_at,
-            updated_at: db_todo.updated_at,
+            created_at: db_todo.created_at.and_utc(),
+            updated_at: db_todo.updated_at.and_utc(),
             todo_type,
             created_by,
         })
@@ -81,6 +82,17 @@ impl CreateTodo {
 pub struct TodoModelController;
 
 impl TodoModelController {
+    pub async fn create(db_pool: &PgPool, todo: CreateTodo) -> anyhow::Result<()> {
+        sqlx::query("INSERT INTO todos (title, type, created_by) VALUES ($1, $2, $3) RETURNING *;")
+            .bind(todo.title)
+            .bind(todo.todo_type.to_string())
+            .bind(todo.created_by.to_string())
+            .execute(db_pool)
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn get_all(db_pool: &PgPool) -> anyhow::Result<TodoByType> {
         let db_todos = sqlx::query_as::<_, DbTodo>("SELECT * FROM todos;")
             .fetch_all(db_pool)
@@ -138,15 +150,13 @@ impl TodoModelController {
         db_pool: &PgPool,
         old: impl Into<String>,
         new: impl Into<String>,
-    ) -> anyhow::Result<Todo> {
-        let todo = sqlx::query_as::<_, DbTodo>(
-            "UPDATE todos SET title = $1 WHERE title = $2 RETURNING *;",
-        )
-        .bind(new.into())
-        .bind(old.into())
-        .fetch_one(db_pool)
-        .await?;
+    ) -> anyhow::Result<()> {
+        sqlx::query("UPDATE todos SET title = $1 WHERE title = $2 RETURNING *;")
+            .bind(new.into())
+            .bind(old.into())
+            .execute(db_pool)
+            .await?;
 
-        Todo::try_from(todo)
+        Ok(())
     }
 }
