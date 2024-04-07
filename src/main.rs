@@ -1,12 +1,11 @@
-// #![allow(dead_code, unused)]
-
 mod commands;
 mod config;
+mod database;
 mod error;
 mod events;
 mod util;
 
-use commands::{animal, help, info, mcskin, roletoggle, run};
+use commands::{animal, help, info, mcskin, roletoggle, run, todo};
 use config::Config;
 use events::event_handler;
 
@@ -54,6 +53,7 @@ async fn main() -> anyhow::Result<()> {
                 roletoggle::roletoggle(),
                 mcskin::mcskin(),
                 info::info(),
+                todo::todo()
             ],
             event_handler: |ctx, event, framework, _data| {
                 Box::pin(event_handler(ctx, event, framework))
