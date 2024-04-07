@@ -103,7 +103,7 @@ pub async fn mcskin(
         return Ok(());
     }
 
-    let mojang_profile = match MojangAPI::get_profile(&player_name).await {
+    let mojang_profile = match MojangAPI::get_profile_from_username(&player_name).await {
         Ok(profile) => profile,
         Err(e) => {
             return respond_error(format!("Failed to get profile for {player_name}"), e, &ctx)
