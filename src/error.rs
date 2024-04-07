@@ -3,6 +3,7 @@ use poise::FrameworkError;
 use crate::Context as AppContext;
 use crate::Data;
 
+#[allow(clippy::needless_lifetimes)]
 pub async fn error_handler<'a>(
     error: FrameworkError<'a, Data, anyhow::Error>,
 ) -> anyhow::Result<()> {
