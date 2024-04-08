@@ -102,10 +102,7 @@ async fn info(
         return Ok(());
     }
 
-    let skin_url = format!(
-        "https://visage.surgeplay.com/face/256/{}",
-        profiles[0].id.to_string()
-    );
+    let skin_url = format!("https://visage.surgeplay.com/face/256/{}", profiles[0].id);
 
     let display_profiles = profiles
         .into_iter()
@@ -119,7 +116,7 @@ async fn info(
         .collect::<Vec<String>>()
         .join("\n");
 
-    let display_trial = if mc_member.trial_member == true {
+    let display_trial = if mc_member.trial_member {
         "Yes".to_string()
     } else {
         "No".to_string()

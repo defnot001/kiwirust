@@ -50,14 +50,11 @@ impl MojangAPI {
     pub async fn get_profile_from_uuid(uuid: &Uuid) -> anyhow::Result<MojangProfile> {
         reqwest::get(format!(
             "https://sessionserver.mojang.com/session/minecraft/profile/{}",
-            uuid.to_string()
+            uuid
         ))
         .await?
         .json::<MojangProfile>()
         .await
-        .context(format!(
-            "Failed to parse response for uuid {}",
-            uuid.to_string()
-        ))
+        .context(format!("Failed to parse response for uuid {}", uuid))
     }
 }
