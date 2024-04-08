@@ -6,3 +6,4 @@ pub mod member;
 pub mod roletoggle;
 pub mod run;
 pub mod todo;
+pub mod status;
