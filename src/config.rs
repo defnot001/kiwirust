@@ -21,6 +21,7 @@ pub struct Config {
     pub roles: RoleConfig,
     pub channels: ChannelConfig,
     pub categories: CategoryConfig,
+    pub pterodactyl: PterodactylConfig
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -83,6 +84,12 @@ pub struct CategoryConfig {
     pub application: serenity::ChannelId,
 }
 
+#[derive(Debug, Deserialize, Clone)]
+pub struct PterodactylConfig {
+    pub url: String,
+    pub api_key: String
+}
+
 impl Config {
     pub fn load() -> anyhow::Result<Self> {
         let config_file = std::fs::File::open("config.json")?;
@@ -100,6 +107,18 @@ impl Display for ServerChoice {
             ServerChoice::Cmp2 => write!(f, "CMP2"),
             ServerChoice::Copy => write!(f, "Copy"),
             ServerChoice::Snapshots => write!(f, "Snapshots"),
+        }
+    }
+}
+
+impl MinecraftConfig {
+    pub fn server_config(&self, choice: &ServerChoice) -> &ServerConfig {
+        match choice {
+            ServerChoice::Smp => &self.smp,
+            ServerChoice::Cmp => &self.cmp,
+            ServerChoice::Cmp2 => &self.cmp2,
+            ServerChoice::Copy => &self.copy,
+            ServerChoice::Snapshots => &self.snapshots,
         }
     }
 }
