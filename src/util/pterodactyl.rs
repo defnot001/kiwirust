@@ -29,7 +29,7 @@ impl Display for DisplayServerState {
             ServerState::Offline => write!(f, "offline"),
             ServerState::Running => write!(f, "running"),
             ServerState::Starting => write!(f, "starting"),
-            ServerState::Stopping => write!(f, "stopping")
+            ServerState::Stopping => write!(f, "stopping"),
         }
     }
 }
