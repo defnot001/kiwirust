@@ -21,7 +21,7 @@ pub struct Config {
     pub roles: RoleConfig,
     pub channels: ChannelConfig,
     pub categories: CategoryConfig,
-    pub pterodactyl: PterodactylConfig
+    pub pterodactyl: PterodactylConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -87,7 +87,7 @@ pub struct CategoryConfig {
 #[derive(Debug, Deserialize, Clone)]
 pub struct PterodactylConfig {
     pub url: String,
-    pub api_key: String
+    pub api_key: String,
 }
 
 impl Config {
