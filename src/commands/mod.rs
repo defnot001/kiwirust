@@ -7,3 +7,4 @@ pub mod roletoggle;
 pub mod run;
 pub mod status;
 pub mod todo;
+pub mod whitelist;
