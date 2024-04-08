@@ -7,6 +7,7 @@ use url::Url;
 use crate::error::respond_error;
 use crate::util::builder::default_embed;
 use crate::util::format::display_time;
+use crate::util::random_utils::sort_player_list;
 use crate::Context as AppContext;
 
 /// Get information.
@@ -209,7 +210,7 @@ async fn get_member_names_per_role(
         }
     }
 
-    member_names.sort_unstable();
+    sort_player_list(&mut member_names);
 
     Ok(member_names)
 }

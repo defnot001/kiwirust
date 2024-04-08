@@ -12,6 +12,7 @@ use crate::{
         builder::default_embed,
         format::{display, display_time, escape_markdown, fdisplay, inline_code},
         mojang::MojangAPI,
+        random_utils::sort_player_list,
     },
     Context as AppContext,
 };
@@ -58,7 +59,7 @@ async fn list(ctx: AppContext<'_>) -> anyhow::Result<()> {
         ));
     }
 
-    member_names.sort_unstable();
+    sort_player_list(&mut member_names);
 
     let embed = default_embed(ctx.author())
         .title(format!("Memberlist for {}", guild.name))
