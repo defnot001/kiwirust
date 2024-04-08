@@ -7,9 +7,12 @@ use crate::config::{Config, ServerChoice};
 pub async fn run_rcon_command(
     server: &ServerChoice,
     config: &Config,
-    command: impl Into<String>,
-) -> anyhow::Result<Option<String>> {
-    let command = command.into();
+    commands: Vec<impl Into<String>>,
+) -> anyhow::Result<Vec<Option<String>>> {
+    let commands = commands
+        .into_iter()
+        .map(|c| c.into())
+        .collect::<Vec<String>>();
 
     let server_config = match server {
         ServerChoice::Smp => &config.minecraft.smp,
@@ -27,27 +30,27 @@ pub async fn run_rcon_command(
         .connect(addr, &server_config.rcon_password)
         .await?;
 
-    let response = connection.cmd(command.as_str()).await;
+    let mut responses: Vec<Option<String>> = Vec::new();
 
-    match response {
-        Ok(response) => {
-            tracing::info!(
-                "Command \"{}\" executed successfully on {server}.",
-                &command,
-            );
+    for cmd in commands {
+        let response = connection.cmd(cmd.as_str()).await;
 
-            if response.is_empty() {
-                Ok(None)
-            } else {
-                Ok(Some(response))
+        match response {
+            Ok(response) => {
+                tracing::info!("Command \"{}\" executed successfully on {server}.", &cmd,);
+
+                if response.is_empty() {
+                    responses.push(None);
+                } else {
+                    responses.push(Some(response));
+                }
+            }
+            Err(e) => {
+                tracing::error!("Error executing command \"{}\" on {server}: {e}", &cmd,);
+                anyhow::bail!("Error executing command \"{}\" on {server}", &cmd);
             }
         }
-        Err(e) => {
-            tracing::error!("Error executing command \"{}\" on {server}: {e}", &command,);
-            Err(anyhow::anyhow!(
-                "Error executing command \"{}\" on {server}",
-                &command,
-            ))
-        }
     }
+
+    Ok(responses)
 }
