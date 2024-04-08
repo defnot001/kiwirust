@@ -30,8 +30,16 @@ pub async fn run(
         return Ok(());
     }
 
-    let mut response = run_rcon_command(&server_choice, &ctx.data().config, command)
-        .await?
+    let response = run_rcon_command(&server_choice, &ctx.data().config, vec![command]).await?;
+
+    if response.len() != 1 {
+        ctx.say("Encountered unexpected response from the server.")
+            .await?;
+        return Ok(());
+    }
+
+    let mut response = response[0]
+        .clone()
         .unwrap_or("Command ran successfully but there was no response.".to_string());
 
     if response.len() > 2000 {
