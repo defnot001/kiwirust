@@ -5,7 +5,7 @@ use rcon::Builder;
 use crate::config::{Config, ServerChoice};
 
 pub async fn run_rcon_command(
-    server: &ServerChoice,
+    server: ServerChoice,
     config: &Config,
     commands: Vec<impl Into<String>>,
 ) -> anyhow::Result<Vec<Option<String>>> {
@@ -14,15 +14,9 @@ pub async fn run_rcon_command(
         .map(|c| c.into())
         .collect::<Vec<String>>();
 
-    let server_config = match server {
-        ServerChoice::Smp => &config.minecraft.smp,
-        ServerChoice::Cmp => &config.minecraft.cmp,
-        ServerChoice::Cmp2 => &config.minecraft.cmp2,
-        ServerChoice::Copy => &config.minecraft.copy,
-        ServerChoice::Snapshots => &config.minecraft.snapshots,
-    };
+    let server_config = config.minecraft.get(server);
 
-    let host = config.minecraft.host.as_str().parse::<Ipv4Addr>()?;
+    let host = server_config.host.as_str().parse::<Ipv4Addr>()?;
     let addr = SocketAddr::new(host.into(), server_config.rcon_port);
 
     let mut connection = Builder::new()

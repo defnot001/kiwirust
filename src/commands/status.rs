@@ -26,7 +26,7 @@ pub async fn status(
         .await
         .context("Failed to fetch the guild this interaction was created in")?;
 
-    let server_config = ctx.data().config.minecraft.server_config(&server_choice);
+    let server_config = ctx.data().config.minecraft.get(server_choice);
 
     let server_state =
         match PteroClient::server_state(&ctx.data().config.pterodactyl, server_config).await {
@@ -54,7 +54,7 @@ pub async fn status(
         return Ok(());
     }
 
-    let mc_status = match mc_status(&ctx.data().config.minecraft, &server_choice).await {
+    let mc_status = match mc_status(&ctx.data().config.minecraft, server_choice).await {
         Ok(status) => status,
         Err(e) => {
             return respond_error(
@@ -66,7 +66,7 @@ pub async fn status(
         }
     };
 
-    let server_metrics = match get_server_metrics(&server_choice, &ctx.data().config).await {
+    let server_metrics = match get_server_metrics(server_choice, &ctx.data().config).await {
         Ok(metrics) => metrics,
         Err(e) => {
             return respond_error(
@@ -161,12 +161,12 @@ struct ServerMetrics {
 
 async fn mc_status(
     mc_config: &MinecraftConfig,
-    server_choice: &ServerChoice,
+    server_choice: ServerChoice,
 ) -> anyhow::Result<McStatusResponse> {
     reqwest::get(format!(
         "https://api.mcstatus.io/v2/status/java/{}:{}",
-        mc_config.host,
-        mc_config.server_config(server_choice).port
+        mc_config.get(server_choice).host,
+        mc_config.get(server_choice).port
     ))
     .await?
     .json::<McStatusResponse>()
@@ -175,7 +175,7 @@ async fn mc_status(
 }
 
 async fn get_server_metrics(
-    server: &ServerChoice,
+    server: ServerChoice,
     config: &Config,
 ) -> anyhow::Result<ServerMetrics> {
     let commands = vec![

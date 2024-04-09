@@ -30,7 +30,7 @@ pub async fn run(
         return Ok(());
     }
 
-    let response = run_rcon_command(&server_choice, &ctx.data().config, vec![command]).await?;
+    let response = run_rcon_command(server_choice, &ctx.data().config, vec![command]).await?;
 
     if response.len() != 1 {
         ctx.say("Encountered unexpected response from the server.")
