@@ -2,26 +2,25 @@ use std::net::{Ipv4Addr, SocketAddr};
 
 use rcon::Builder;
 
-use crate::config::{Config, ServerChoice};
+use crate::config::{Config, ServerChoice, ServerConfig};
 
 pub async fn run_rcon_command(
-    server: ServerChoice,
-    config: &Config,
+    config: &ServerConfig,
     commands: Vec<impl Into<String>>,
 ) -> anyhow::Result<Vec<Option<String>>> {
+    let server = ServerChoice::try_from(config)?;
+
     let commands = commands
         .into_iter()
         .map(|c| c.into())
         .collect::<Vec<String>>();
 
-    let server_config = config.minecraft.get(server);
-
-    let host = server_config.host.as_str().parse::<Ipv4Addr>()?;
-    let addr = SocketAddr::new(host.into(), server_config.rcon_port);
+    let host = config.host.as_str().parse::<Ipv4Addr>()?;
+    let addr = SocketAddr::new(host.into(), config.rcon_port);
 
     let mut connection = Builder::new()
         .enable_minecraft_quirks(true)
-        .connect(addr, &server_config.rcon_password)
+        .connect(addr, &config.rcon_password)
         .await?;
 
     let mut responses: Vec<Option<String>> = Vec::new();
