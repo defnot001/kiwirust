@@ -29,6 +29,24 @@ impl Display for ServerChoice {
     }
 }
 
+impl TryFrom<&ServerConfig> for ServerChoice {
+    type Error = anyhow::Error;
+
+    fn try_from(server_config: &ServerConfig) -> anyhow::Result<Self> {
+        match server_config.server_name.as_str() {
+            "smp" => Ok(Self::Smp),
+            "cmp" => Ok(Self::Cmp),
+            "cmp2" => Ok(Self::Cmp2),
+            "copy" => Ok(Self::Copy),
+            "snapshots" => Ok(Self::Snapshots),
+            _ => Err(anyhow::anyhow!(
+                "Unknown server choice: {}",
+                server_config.server_name
+            )),
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
     pub bot: BotConfig,
@@ -156,11 +174,13 @@ impl<'de> Deserialize<'de> for MinecraftConfig {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct ServerConfig {
+    pub server_name: String,
     pub host: String,
     pub port: u16,
     pub rcon_port: u16,
     pub rcon_password: String,
     pub panel_id: String,
+    pub operator: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]
