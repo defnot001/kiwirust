@@ -188,7 +188,7 @@ async fn get_server_metrics(
 
     let error_message = format!("Failed to execute the server metrics scripts on {server}");
 
-    let responses = run_rcon_command(server, config, commands)
+    let responses = run_rcon_command(config.minecraft.get(server), commands)
         .await
         .context(error_message.clone())?;
 

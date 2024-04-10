@@ -1,5 +1,5 @@
 use crate::{
-    config::ServerChoice,
+    config::{ServerChoice, ServerConfig},
     util::{
         format::{block_code, fdisplay},
         rcon::run_rcon_command,
@@ -30,7 +30,11 @@ pub async fn run(
         return Ok(());
     }
 
-    let response = run_rcon_command(server_choice, &ctx.data().config, vec![command]).await?;
+    let response = run_rcon_command(
+        ctx.data().config.minecraft.get(server_choice),
+        vec![command],
+    )
+    .await?;
 
     if response.len() != 1 {
         ctx.say("Encountered unexpected response from the server.")
