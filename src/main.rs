@@ -7,7 +7,9 @@ mod error;
 mod events;
 mod util;
 
-use commands::{animal, help, info, mcskin, member, roletoggle, run, status, todo, whitelist};
+use commands::{
+    animal, backup, help, info, mcskin, member, roletoggle, run, status, todo, whitelist,
+};
 use config::Config;
 use events::event_handler;
 
@@ -50,6 +52,7 @@ async fn main() -> anyhow::Result<()> {
         .options(poise::FrameworkOptions {
             commands: vec![
                 animal::animal(),
+                backup::backup(),
                 help::help(),
                 run::run(),
                 roletoggle::roletoggle(),

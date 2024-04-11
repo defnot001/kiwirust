@@ -1,4 +1,5 @@
 pub mod animal;
+pub mod backup;
 pub mod help;
 pub mod info;
 pub mod mcskin;
