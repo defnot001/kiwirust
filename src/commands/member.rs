@@ -12,7 +12,7 @@ use crate::{
         builder::default_embed,
         format::{display, display_time, escape_markdown, fdisplay, inline_code},
         mojang::MojangAPI,
-        random_utils::sort_player_list,
+        random_utils::{maybe_set_guild_thumbnail, sort_player_list},
     },
     Context as AppContext,
 };
@@ -63,8 +63,9 @@ async fn list(ctx: AppContext<'_>) -> anyhow::Result<()> {
 
     let embed = default_embed(ctx.author())
         .title(format!("Memberlist for {}", guild.name))
-        .description(member_names.join("\n"))
-        .thumbnail(guild.icon_url().unwrap_or_default());
+        .description(member_names.join("\n"));
+
+    let embed = maybe_set_guild_thumbnail(embed, &guild);
 
     ctx.send(CreateReply::default().embed(embed)).await?;
 

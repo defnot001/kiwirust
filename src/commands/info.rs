@@ -7,7 +7,7 @@ use url::Url;
 use crate::error::respond_error;
 use crate::util::builder::default_embed;
 use crate::util::format::display_time;
-use crate::util::random_utils::sort_player_list;
+use crate::util::random_utils::{maybe_set_guild_thumbnail, sort_player_list};
 use crate::Context as AppContext;
 
 /// Get information.
@@ -46,8 +46,9 @@ async fn server(ctx: AppContext<'_>) -> anyhow::Result<()> {
         .title(format!("Server Info {}", partial_guild.name))
         .field("Membercount", member_count.to_string(), false)
         .field("Guild Created At", display_time(created_at), false)
-        .field("Permanent Invite Link", invite.url(), false)
-        .thumbnail(partial_guild.icon_url().unwrap_or_default());
+        .field("Permanent Invite Link", invite.url(), false);
+
+    let embed = maybe_set_guild_thumbnail(embed, &partial_guild);
 
     ctx.send(CreateReply::default().embed(embed)).await?;
 
@@ -114,8 +115,9 @@ async fn members(ctx: AppContext<'_>) -> anyhow::Result<()> {
     let embed = default_embed(ctx.author())
         .title("Info Members")
         .description(member_names.join("\n"))
-        .field("Member Count", member_names.len().to_string(), false)
-        .thumbnail(partial_guild.icon_url().unwrap_or_default());
+        .field("Member Count", member_names.len().to_string(), false);
+
+    let embed = maybe_set_guild_thumbnail(embed, &partial_guild);
 
     ctx.send(CreateReply::default().embed(embed)).await?;
 
@@ -136,8 +138,9 @@ async fn admins(ctx: AppContext<'_>) -> anyhow::Result<()> {
     let embed = default_embed(ctx.author())
         .title("Info Admins")
         .description(admin_names.join("\n"))
-        .field("Admin Count", admin_names.len().to_string(), false)
-        .thumbnail(partial_guild.icon_url().unwrap_or_default());
+        .field("Admin Count", admin_names.len().to_string(), false);
+
+    let embed = maybe_set_guild_thumbnail(embed, &partial_guild);
 
     ctx.send(CreateReply::default().embed(embed)).await?;
 
