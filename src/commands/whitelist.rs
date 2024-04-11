@@ -1,5 +1,6 @@
 use std::{
     net::{Ipv4Addr, SocketAddr},
+    ops::ControlFlow,
     str::FromStr,
 };
 
@@ -42,9 +43,9 @@ async fn add(
         return Ok(());
     }
 
-    let embed =
+    let results =
         match add_remove_whitelist(ign.as_str(), ctx.data().config.minecraft.clone(), true).await {
-            Ok(r) => build_whitelist_report_embed(ctx.author(), ign, &r),
+            Ok(r) => r,
             Err(e) => {
                 return respond_error(
                     format!("Something went wrong trying to add {ign} to the whitelist!"),
@@ -55,7 +56,15 @@ async fn add(
             }
         };
 
-    ctx.send(CreateReply::default().embed(embed)).await?;
+    if is_all_success(&results) {
+        ctx.say(format!(
+            "Successfully added `{ign}` to the whitelist on all servers."
+        ))
+        .await?;
+    } else {
+        let embed = build_whitelist_report_embed(ctx.author(), ign, &results);
+        ctx.send(CreateReply::default().embed(embed)).await?;
+    }
 
     Ok(())
 }
@@ -73,10 +82,14 @@ async fn remove(
         return Ok(());
     }
 
-    let embed = match add_remove_whitelist(ign.as_str(), ctx.data().config.minecraft.clone(), false)
-        .await
+    let results = match add_remove_whitelist(
+        ign.as_str(),
+        ctx.data().config.minecraft.clone(),
+        false,
+    )
+    .await
     {
-        Ok(r) => build_whitelist_report_embed(ctx.author(), ign, &r),
+        Ok(r) => r,
         Err(e) => {
             return respond_error(
                 format!("Something went wrong trying to remove {ign} from the whitelist!"),
@@ -87,7 +100,15 @@ async fn remove(
         }
     };
 
-    ctx.send(CreateReply::default().embed(embed)).await?;
+    if is_all_success(&results) {
+        ctx.say(format!(
+            "Successfully removed `{ign}` from the whitelist on all servers."
+        ))
+        .await?;
+    } else {
+        let embed = build_whitelist_report_embed(ctx.author(), ign, &results);
+        ctx.send(CreateReply::default().embed(embed)).await?;
+    }
 
     Ok(())
 }
@@ -292,6 +313,30 @@ async fn run_whitelist_rcon(
     }
 
     Ok((whitelist_result, op_result))
+}
+
+fn is_all_success(elements: &[WhitelistResultElement]) -> bool {
+    for element in elements {
+        let w: ControlFlow<(), ()> = match element.whitelist {
+            WhitelistResult::Success => ControlFlow::Continue(()),
+            WhitelistResult::Already | WhitelistResult::Fail => ControlFlow::Break(()),
+        };
+
+        let o: ControlFlow<(), ()> = if let Some(o) = element.op.as_ref() {
+            match o {
+                OpResult::Success => ControlFlow::Continue(()),
+                OpResult::Already | OpResult::Fail => ControlFlow::Break(()),
+            }
+        } else {
+            ControlFlow::Continue(())
+        };
+
+        if w.is_break() || o.is_break() {
+            return false;
+        }
+    }
+
+    true
 }
 
 fn build_whitelist_report_embed(
