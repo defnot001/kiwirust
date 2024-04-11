@@ -181,6 +181,7 @@ pub struct ServerConfig {
     pub rcon_password: String,
     pub panel_id: String,
     pub operator: bool,
+    pub backup_limit: u8,
 }
 
 #[derive(Debug, Deserialize, Clone)]
