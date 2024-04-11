@@ -107,3 +107,15 @@ pub fn time(date_time: chrono::DateTime<chrono::Utc>, style: TimestampStyle) -> 
         TimestampStyle::Relative => format!("<t:{timestamp}:R>"),
     }
 }
+
+pub fn display_bytes(bytes: u64) -> String {
+    if bytes == 0 {
+        return "0 Bytes".to_string();
+    }
+
+    let sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+    let i = (bytes as f64).log(1024.0).floor() as usize;
+    let precise_count = bytes as f64 / 1024.0_f64.powi(i as i32);
+
+    format!("{:.2} {}", precise_count, sizes[i])
+}
